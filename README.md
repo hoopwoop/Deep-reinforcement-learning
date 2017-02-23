@@ -9,4 +9,12 @@ Python programming
 
 #Installation
 1. Install Anaconda3_python3.6 version
-2. Install tensorflow(!!!TensorFlow only supports version 3.5.x of Python on Windows!!!): Start Anaconda propmt under administrator authorization => Execute "conda create -n tensorflow" => Execute "activate tensorflow" =>Excute "conda install -c conda-forge tensorflow" => downgrade to 3.5.3 => create shortcut on desk from envs\tensorflow\Scripts\spyder.exe
+2. Install tensorflow by following order(!!!TensorFlow only supports version 3.5.x of Python on Windows!!!)<br />
+Start Anaconda propmt<br />
+Execute 'conda create --name tensorflow python=3.5'<br />
+Execute 'activate tensorflow'<br />
+Execute 'conda install jupyter'<br />
+Execute 'conda install scipy'<br />
+Execute 'pip install tensorflow'<br />
+Execute 'conda install spyder'<br />
+Create shortcut on desk from envs\tensorflow\Scripts\spyder.exe
