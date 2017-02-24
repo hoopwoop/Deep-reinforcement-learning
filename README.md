@@ -19,4 +19,5 @@ Execute 'pip install tensorflow'<br />
 Execute 'conda install spyder'<br />
 Execute 'pip install tflearn' (Can not be imported because it needs curses library which is not supported on windows)<br />
 Execute 'conda install h5py'<br />
+Execute 'conda install matplotlib'<br />
 Create shortcut on desk from envs\tensorflow\Scripts\spyder.exe
