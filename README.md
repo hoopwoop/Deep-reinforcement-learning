@@ -5,7 +5,7 @@
 3. DDPG: https://arxiv.org/pdf/1509.02971.pdf
 
 #Configuration
-Python programming
+Python3.5.3, tensorflow_cpu, win7-64bit
 
 #Installation
 1. Install Anaconda3_python3.6 version
