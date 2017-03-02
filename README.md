@@ -6,7 +6,7 @@
 4. DPG: http://jmlr.org/proceedings/papers/v32/silver14.pdf
 
 #Configuration
-Python3.5.3, tensorflow_cpu, win7-64bit
+Python3.5.3, tensorflow_cpu, openai gym, win7-64bit
 
 #Installation
 1. Install Anaconda3_python3.6 version
