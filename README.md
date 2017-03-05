@@ -22,4 +22,5 @@ Execute 'pip install tflearn' (Can not be imported because it needs curses libra
 Execute 'conda install h5py'<br />
 Execute 'conda install matplotlib'<br />
 Execute 'pip install gym'<br />
+Execute 'conda install swig'<br />
 Create shortcut on desk from envs\tensorflow\Scripts\spyder.exe
