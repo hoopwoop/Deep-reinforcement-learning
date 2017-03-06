@@ -23,4 +23,5 @@ Execute 'conda install h5py'<br />
 Execute 'conda install matplotlib'<br />
 Execute 'pip install gym'<br />
 Execute 'conda install swig'<br />
+Execute 'pip install gym[box2d]' (if failed, follow kengz's comment in https://github.com/openai/gym/issues/100)<br />
 Create shortcut on desk from envs\tensorflow\Scripts\spyder.exe
