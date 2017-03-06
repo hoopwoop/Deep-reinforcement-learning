@@ -6,5 +6,5 @@
 4. DPG: http://jmlr.org/proceedings/papers/v32/silver14.pdf
 
 #Configuration
-Python3.5.3, tensorflow_cpu, openai gym, win7-64bit
+Python3.5.3, tensorflow_cpu, openai gym, openai gym[box2d], win7-64bit
 
