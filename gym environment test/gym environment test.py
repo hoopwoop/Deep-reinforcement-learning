@@ -20,23 +20,24 @@ Second value -1.0..-0.5 fire left engine, +0.5..+1.0 fire right engine, -0.5..0.
 
 
 import gym
+import numpy as np
 env = gym.make('LunarLanderContinuous-v2')
-print(env.action_space)
-print(env.observation_space)
-print(env.action_space.high)
-print(env.action_space.low)
 
-'''for i_episode in range(1):
+for i_episode in range(1):
     observation = env.reset()
     for t in range(1000):
+        #use 'env.render()'to see animation
         env.render()
+        if t<=30: 
+            action =np.array([-0.1,0])
+        else:
+            action =np.array([1,0])
+        observation, reward, done, info = env.step(action)
         print(observation)
         print(action)
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        
+        print(reward)
         while (input("Press Enter to continue...")): print('wait')
         if done:
             print("Episode finished after {} timesteps".format(t+1))
             break
-env.render(close=True)'''
+env.render(close=True)
