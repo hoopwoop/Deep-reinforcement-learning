@@ -28,10 +28,10 @@ for i_episode in range(1):
     for t in range(1000):
         #use 'env.render()'to see animation
         env.render()
-        if t<=30: 
-            action =np.array([-0.1,0])
-        else:
-            action =np.array([1,0])
+        if (t%2==0):
+            action =np.array([0.005,-1])
+        else: 
+            action =np.array([0,1])
         observation, reward, done, info = env.step(action)
         print(observation)
         print(action)

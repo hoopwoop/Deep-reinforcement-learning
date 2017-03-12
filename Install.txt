@@ -13,6 +13,7 @@ Execute 'conda install h5py'
 Execute 'conda install matplotlib'
 Execute 'pip install gym'
 Execute 'conda install swig'
+Execute 'conda install -c conda-forge ffmpeg'
 Execute 'pip install gym[box2d]'
 (if failed, a. install Visual C++ 2015 Build Tools,
             b. follow kengz's comment in https://github.com/openai/gym/issues/100, change command as follow,

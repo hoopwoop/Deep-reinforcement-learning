@@ -7,7 +7,7 @@ Created on Mon Mar  6 23:49:15 2017
 actor network
 """
 ####################################################################################################
-#remember to make tst:True when all training done, and use the trained network to see do the control
+#remember to make tst:True when all training done, and use the trained network to control
 ####################################################################################################
 import tensorflow as tf
 import numpy as np
@@ -41,8 +41,8 @@ class anet(object):
 
         # Op for periodically updating target network with online network weights
         self.update_target_network_params = \
-            [self.target_network_params[i].assign(tf.mul(self.network_params[i], self.tau) + \
-                tf.mul(self.target_network_params[i], 1. - self.tau))
+            [self.target_network_params[i].assign(tf.multiply(self.network_params[i], self.tau) + \
+                tf.multiply(self.target_network_params[i], 1. - self.tau))
                 for i in range(len(self.target_network_params))]
 
         # This gradient will be provided by the critic network
@@ -57,8 +57,8 @@ class anet(object):
 
         self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
     
-    #2 hidden layer_relu+BN_lrdecay_batchnorm
-   def creat_a_net(self):
+   #2 hidden layer_relu+BN_lrdecay_batchnorm
+   def create_a_net(self):
        inputs = tf.placeholder(tf.float32, [None, self.s_dim])
        W1 = tf.Variable(tf.truncated_normal([self.s_dim, 400], stddev=0.1))
        B1 = tf.Variable(tf.ones([400])/10)
@@ -74,8 +74,8 @@ class anet(object):
        Y2bn, update_ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2)
        Y2 = tf.nn.relu(Y2bn)
        Ylogits = tf.matmul(Y2, W3) + B3
-       out = tf.nn.tanh(Ylogits)
-       scaled_out = tf.mul(out, self.action_bound)
+       out = tf.tanh(Ylogits)
+       scaled_out = tf.multiply(out, self.action_bound)
        update_ema = tf.group(update_ema1, update_ema2)
        return inputs, out, scaled_out, update_ema
   
@@ -96,7 +96,7 @@ class anet(object):
        return Ylogits, tf.no_op()
  
  
-   def train(self, i, inputs, a_gradient):
+   def train(self, inputs, a_gradient, i):
      #learning rate decay
      max_learning_rate = 0.03
      min_learning_rate = 0.0001
