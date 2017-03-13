@@ -19,7 +19,7 @@ from replay_buffer import ReplayBuffer
 #   Training Parameters
 # ==========================
 # Max training steps
-MAX_EPISODES = 50000
+MAX_EPISODES = 2000
 # Max episode length
 MAX_EP_STEPS = 1000
 # Base learning rate for the Actor network
@@ -45,11 +45,23 @@ ENV_NAME = 'LunarLanderContinuous-v2'
 MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 # Directory for storing tensorboard summary results
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
+# Pathy for storing model
+MODEL_PATH = os.getcwd()+str('\\results\\tf_ddpg_model\\model.ckpt')
 RANDOM_SEED = 1234
 # Size of replay buffer
 BUFFER_SIZE = 10000
 MINIBATCH_SIZE = 64
 
+# ===========================
+#   Tensorflow model save
+# ===========================
+def save_model():
+    saver = tf.train.Saver()
+    save_path = saver.save(tf.Session(), MODEL_PATH)
+    print("Model saved in file: %s" % save_path)
+    ##should save batchnorm parameter with tst:true?
+    
+    
 # ===========================
 #   Tensorflow Summary Ops
 # ===========================
@@ -162,6 +174,9 @@ def train(sess, env, actor, critic):
                     '| Qmax: %.4f' % (ep_ave_max_q / float(j)))
 
                 break
+            
+    save_model()
+    
 def main(_):
     with tf.Session() as sess:
         

@@ -60,11 +60,11 @@ class anet(object):
    #2 hidden layer_relu+BN_lrdecay_batchnorm
    def create_a_net(self):
        inputs = tf.placeholder(tf.float32, [None, self.s_dim])
-       W1 = tf.Variable(tf.truncated_normal([self.s_dim, 400], stddev=0.1))
-       B1 = tf.Variable(tf.ones([400])/10)
-       W2 = tf.Variable(tf.truncated_normal([400, 300], stddev=0.1))
-       B2 = tf.Variable(tf.ones([300])/10)
-       W3 = tf.Variable(tf.truncated_normal([300, self.a_dim], stddev=0.1))
+       W1 = tf.Variable(tf.truncated_normal([self.s_dim, 400], stddev=0.001))
+       B1 = tf.Variable(tf.ones([400])/1000)
+       W2 = tf.Variable(tf.truncated_normal([400, 300], stddev=0.001))
+       B2 = tf.Variable(tf.ones([300])/1000)
+       W3 = tf.Variable(tf.truncated_normal([300, self.a_dim], stddev=0.001))
        B3 = tf.Variable(tf.zeros([self.a_dim]))
        XX = tf.reshape(inputs, [-1, self.s_dim]) 
        Y1l = tf.matmul(XX, W1)
@@ -98,8 +98,8 @@ class anet(object):
  
    def train(self, inputs, a_gradient, i):
      #learning rate decay
-     max_learning_rate = 0.03
-     min_learning_rate = 0.0001
+     max_learning_rate = 0.0001
+     min_learning_rate = 0.000001
      decay_speed = 1000.0
      learning_rate = min_learning_rate + (max_learning_rate - min_learning_rate) * np.exp(-i/decay_speed)  
      

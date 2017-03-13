@@ -65,8 +65,8 @@ class cnet(object):
         inputs = tf.placeholder(tf.float32, [None, self.s_dim])
         action = tf.placeholder(tf.float32, [None, self.a_dim])
         #net = tflearn.fully_connected(inputs, 400, activation='relu')       
-        W1 = tf.Variable(tf.truncated_normal([self.s_dim, 400], stddev=0.1))
-        B1 = tf.Variable(tf.ones([400])/10)
+        W1 = tf.Variable(tf.truncated_normal([self.s_dim, 400], stddev=0.001))
+        B1 = tf.Variable(tf.ones([400])/1000)
        
 
         # Add the action tensor in the 2nd hidden layer
@@ -74,12 +74,12 @@ class cnet(object):
         
         #t1 = tflearn.fully_connected(net, 300)
         #t2 = tflearn.fully_connected(action, 300)
-        W2s = tf.Variable(tf.truncated_normal([400, 300], stddev=0.1))
-        W2a = tf.Variable(tf.truncated_normal([self.a_dim, 300], stddev=0.1))
-        B2 = tf.Variable(tf.ones([300])/10)
+        W2s = tf.Variable(tf.truncated_normal([400, 300], stddev=0.001))
+        W2a = tf.Variable(tf.truncated_normal([self.a_dim, 300], stddev=0.001))
+        B2 = tf.Variable(tf.ones([300])/1000)
 
         #net = tflearn.activation(tf.matmul(net,t1.W) + tf.matmul(action, t2.W) + t2.b, activation='relu')
-        W3 = tf.Variable(tf.truncated_normal([300, 1], stddev=0.1))
+        W3 = tf.Variable(tf.truncated_normal([300, 1], stddev=0.001))
         B3 = tf.Variable(tf.zeros([1]))
         XX = tf.reshape(inputs, [-1, self.s_dim]) 
         XXa = tf.reshape(action, [-1, self.a_dim])
@@ -116,8 +116,8 @@ class cnet(object):
    
     def train(self, inputs, action, predicted_q_value, i):
       #learning rate decay
-      max_learning_rate = 0.03
-      min_learning_rate = 0.0001
+      max_learning_rate = 0.001
+      min_learning_rate = 0.00001
       decay_speed = 1000.0
       learning_rate = min_learning_rate + (max_learning_rate - min_learning_rate) * np.exp(-i/decay_speed)  
       return self.sess.run([self.out, self.optimize], feed_dict={
