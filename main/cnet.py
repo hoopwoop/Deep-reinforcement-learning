@@ -3,7 +3,7 @@
 Created on Thu Mar  9 21:44:45 2017
 
 @author: Kuanho
-
+Reference: Patrick Emami
 critic network
 """
 
@@ -24,18 +24,18 @@ class cnet(object):
         self.lr = tf.placeholder(tf.float32)
        
         # train/test selector for batch normalisation
-        self.tst = tf.placeholder(tf.bool)
+        #self.tst = tf.placeholder(tf.bool)
         
         # training iteration
-        self.iter = tf.placeholder(tf.int32)
+        #self.iter = tf.placeholder(tf.int32)
         
         # Critic network
-        self.inputs, self.action, self.out, self.update_ema = self.create_c_net()
+        self.inputs, self.action, self.out, self.net = self.create_c_net()
 
         self.network_params = tf.trainable_variables()[num_actor_vars:]
 
         # Target Network
-        self.target_inputs, self.target_action, self.target_out, self.target_update_ema = self.create_c_net()
+        self.target_inputs, self.target_action, self.target_out, self.target_net = self.create_c_net()
         
         self.target_network_params = tf.trainable_variables()[(len(self.network_params) + num_actor_vars):]
 
@@ -56,17 +56,20 @@ class cnet(object):
         # this will sum up the gradients of each critic output in the minibatch 
         # w.r.t. that action (i.e., sum of dy/dx over all ys). We then divide
         # through by the minibatch size to scale the gradients down correctly.
-        ## cancel dividing batch size: self.action_grads = \
-        ## tf.div(tf.gradients(self.out, self.action), tf.constant(MINIBATCH_SIZE, dtype=tf.float32))
-        self.action_grads = tf.gradients(self.out, self.action)
+        # note: tf.gradients operation has done the summation over each batch
+        self.action_grads = tf.div(tf.gradients(self.out, self.action), tf.constant(self.MINIBATCH_SIZE, dtype=tf.float32))
         
     #2 hidden layer_relu+BN_lrdecay_batchnorm
     def create_c_net(self):
+        layer1_size = 400
+        layer2_size = 300
+        
         inputs = tf.placeholder(tf.float32, [None, self.s_dim])
         action = tf.placeholder(tf.float32, [None, self.a_dim])
         #net = tflearn.fully_connected(inputs, 400, activation='relu')       
-        W1 = tf.Variable(tf.truncated_normal([self.s_dim, 400], stddev=0.001))
-        B1 = tf.Variable(tf.ones([400])/1000)
+        W1 = tf.Variable(tf.random_uniform([self.s_dim, layer1_size],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)))
+        B1 = tf.Variable(tf.random_uniform([layer1_size],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)))
+        
        
 
         # Add the action tensor in the 2nd hidden layer
@@ -74,31 +77,33 @@ class cnet(object):
         
         #t1 = tflearn.fully_connected(net, 300)
         #t2 = tflearn.fully_connected(action, 300)
-        W2s = tf.Variable(tf.truncated_normal([400, 300], stddev=0.001))
-        W2a = tf.Variable(tf.truncated_normal([self.a_dim, 300], stddev=0.001))
-        B2 = tf.Variable(tf.ones([300])/1000)
+        W2s = tf.Variable(tf.random_uniform([layer1_size, layer2_size],-1/np.sqrt(layer1_size + self.a_dim),1/np.sqrt(layer1_size + self.a_dim)))
+        W2a = tf.Variable(tf.random_uniform([self.a_dim, layer2_size],-1/np.sqrt(layer1_size + self.a_dim),1/np.sqrt(layer1_size + self.a_dim))) 
+        B2 = tf.Variable(tf.random_uniform([layer2_size],-1/np.sqrt(layer1_size + self.a_dim),1/np.sqrt(layer1_size + self.a_dim)))
 
         #net = tflearn.activation(tf.matmul(net,t1.W) + tf.matmul(action, t2.W) + t2.b, activation='relu')
-        W3 = tf.Variable(tf.truncated_normal([300, 1], stddev=0.001))
-        B3 = tf.Variable(tf.zeros([1]))
+        W3 = tf.Variable(tf.random_uniform([layer2_size,1],-3e-3,3e-3))
+        B3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
         XX = tf.reshape(inputs, [-1, self.s_dim]) 
         XXa = tf.reshape(action, [-1, self.a_dim])
         Y1l = tf.matmul(XX, W1)
-        Y1bn, update_ema1 = self.batchnorm(Y1l, self.tst, self.iter, B1)
-        Y1 = tf.nn.relu(Y1bn)
+        #Y1bn, update_ema1 = self.batchnorm(Y1l, self.tst, self.iter, B1)
+        #Y1 = tf.nn.relu(Y1bn)
+        Y1 = tf.nn.relu(Y1l+B1)
         Y2l = tf.matmul(Y1, W2s) + tf.matmul(XXa, W2a)
-        Y2bn, update_ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2)
-        Y2 = tf.nn.relu(Y2bn)
-        Ylogits = tf.matmul(Y2, W3) + B3
+        #Y2bn, update_ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2)
+        #Y2 = tf.nn.relu(Y2bn)
+        Y2 = tf.nn.relu(Y2l+B2)
+        Ylogits = tf.identity(tf.matmul(Y2, W3) + B3)
         # linear layer connected to 1 output representing Q(s,a) 
         # Weights are init to Uniform[-3e-3, 3e-3]
         #w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
         #out = tflearn.fully_connected(net, 1, weights_init=w_init)
         out = Ylogits
-        update_ema = tf.group(update_ema1, update_ema2)
-        return inputs, action, out, update_ema
+        #update_ema = tf.group(update_ema1, update_ema2)
+        return inputs, action, out, [W1, B1, W2s, W2a, B2, W3, B3]
 
-    def batchnorm(self, Ylogits, is_test, iteration, offset, convolutional=False):
+    '''def batchnorm(self, Ylogits, is_test, iteration, offset, convolutional=False):
        exp_moving_avg = tf.train.ExponentialMovingAverage(0.999, iteration) # adding the iteration prevents from averaging across non-existing iterations
        bnepsilon = 1e-5
        if convolutional:
@@ -112,39 +117,40 @@ class cnet(object):
        return Ybn, update_moving_everages
 
     def no_batchnorm(self, Ylogits, is_test, iteration, offset, convolutional=False):
-       return Ylogits, tf.no_op()
+       return Ylogits, tf.no_op()'''
    
     def train(self, inputs, action, predicted_q_value, i):
       #learning rate decay
-      max_learning_rate = 0.001
-      min_learning_rate = 0.00001
-      decay_speed = 1000.0
-      learning_rate = min_learning_rate + (max_learning_rate - min_learning_rate) * np.exp(-i/decay_speed)  
+      #max_learning_rate = 0.01
+      #min_learning_rate = 0.0001
+      #decay_speed = 1000.0
+      #learning_rate = min_learning_rate + (max_learning_rate - min_learning_rate) * np.exp(-i/decay_speed)  
+      learning_rate=0.001
       return self.sess.run([self.out, self.optimize], feed_dict={
             self.inputs: inputs,
             self.action: action,
-            self.predicted_q_value: predicted_q_value, self.lr:learning_rate, self.tst: False
+            self.predicted_q_value: predicted_q_value, self.lr:learning_rate
         })
-      self.sess.run(self.update_ema, {self.inputs: inputs, 
-                                   self.action: action, self.tst: False, self.iter: i})
+      '''self.sess.run(self.update_ema, {self.inputs: inputs, 
+                                   self.action: action, self.tst: False, self.iter: i})'''
 
 
     def predict(self, inputs, action):
         return self.sess.run(self.out, feed_dict={
             self.inputs: inputs,
-            self.action: action, self.tst: False
+            self.action: action
         })
 
     def predict_target(self, inputs, action):
         return self.sess.run(self.target_out, feed_dict={
             self.target_inputs: inputs,
-            self.target_action: action, self.tst: False
+            self.target_action: action
         })
 
     def action_gradients(self, inputs, actions): 
         return self.sess.run(self.action_grads, feed_dict={
             self.inputs: inputs,
-            self.action: actions , self.tst: False
+            self.action: actions
         })
 
     def update_target_network(self):

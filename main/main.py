@@ -3,23 +3,25 @@
 Created on Thu Mar  9 23:03:35 2017
 
 @author: Kuanho
-
+Reference: Patrick Emami
 main
 """
 import tensorflow as tf
 import gym
 import os
+import csv
 import numpy as np
 from gym import wrappers
 from anet import anet
 from cnet import cnet
 from replay_buffer import ReplayBuffer
+from OU import OUNoise
 
 # ==========================
 #   Training Parameters
 # ==========================
 # Max training steps
-MAX_EPISODES = 2000
+MAX_EPISODES = 3000
 # Max episode length
 MAX_EP_STEPS = 1000
 # Base learning rate for the Actor network
@@ -36,7 +38,7 @@ TAU = 0.001
 #   Utility Parameters
 # ===========================
 # Render gym env during training
-RENDER_ENV = False
+RENDER_ENV = True
 # Use Gym Monitor
 GYM_MONITOR_EN = False
 # Gym environment
@@ -46,20 +48,31 @@ MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 # Directory for storing tensorboard summary results
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
 # Pathy for storing model
-MODEL_PATH = os.getcwd()+str('\\results\\tf_ddpg_model\\model.ckpt')
+MODEL_DIR = os.getcwd()+str('\\results\\model')
 RANDOM_SEED = 1234
 # Size of replay buffer
 BUFFER_SIZE = 10000
 MINIBATCH_SIZE = 64
 
 # ===========================
-#   Tensorflow model save
+#   Model save
 # ===========================
-def save_model():
-    saver = tf.train.Saver()
-    save_path = saver.save(tf.Session(), MODEL_PATH)
-    print("Model saved in file: %s" % save_path)
-    ##should save batchnorm parameter with tst:true?
+def save_model(sess, actor_net, critic_net):
+    anetf=open(MODEL_DIR+'\\actornet_weight', 'w')
+    cnetf=open(MODEL_DIR+'\\criticnet_weight', 'w')
+    #anetf.write("\n".join(map(lambda x: str(x), sess.run(actor_net))))
+    #cnetf.write("\n".join(map(lambda x: str(x), sess.run(critic_net))))
+    writera = csv.writer(anetf)
+    writera.writerows(sess.run(actor_net))
+    writerc = csv.writer(cnetf)
+    writerc.writerows(sess.run(critic_net))
+    anetf.close()
+    cnetf.close()
+    '''with open('actornet_weight', 'w') as outfile:
+        json.dump(sess.run(actor_net), outfile)
+    with open('criticnet_weight', 'w') as outfile:
+        json.dump(sess.run(critic_net), outfile)'''
+    print('''Model saved''')
     
     
 # ===========================
@@ -82,7 +95,12 @@ def build_summaries():
 def train(sess, env, actor, critic):
     ## Total steps
     TS=0
-
+    ## Condition index
+    CI=0
+    
+    #OU noise
+    exploration_noise = OUNoise(actor.a_dim, mu=0, theta=0.15, sigma=0.07)
+    
     # Set up summary Ops
     summary_ops, summary_vars = build_summaries()
 
@@ -111,13 +129,17 @@ def train(sess, env, actor, critic):
             # Added exploration noise
             #a = actor.predict(np.reshape(s, (1, env.observation_space.shape[0]))) + (1. / (1. + i + j)) 
             ##the addition makes action_value exceeds bound
-            # random policy
-            if np.random.uniform(0,1)<0.95:    
+            # random policy, if np.random.uniform(0,1)<2 means no random policy
+            '''if np.random.uniform(0,1)<0.9:    
                 a = actor.predict(np.reshape(s, (1, actor.s_dim)))
+                
+
             else:
                 a = np.array([np.random.uniform(-actor.action_bound, actor.action_bound) \
-                                       for n in range(actor.a_dim)])  
-                    
+                                       for n in range(actor.a_dim)])  '''
+            # Add OU noise
+            a = actor.predict(np.reshape(s, (1, actor.s_dim))) + exploration_noise.noise()
+    
             # Ensure the output is limited        
             a = np.minimum(np.maximum(a, -actor.action_bound), actor.action_bound)    
             
@@ -137,9 +159,9 @@ def train(sess, env, actor, critic):
                 y_i = []
                 for k in range(MINIBATCH_SIZE):
                     if t_batch[k]:
-                        y_i.append(r_batch[k])
+                        y_i.append(r_batch[k]*0.01)
                     else:
-                        y_i.append(r_batch[k] + GAMMA * target_q[k])
+                        y_i.append(r_batch[k]*0.01 + GAMMA * target_q[k]) ## scale the reward
 
                 # Update the critic given the targets
                 predicted_q_value, _ = critic.train(s_batch, a_batch, np.reshape(y_i, (MINIBATCH_SIZE, 1)), TS)
@@ -159,6 +181,7 @@ def train(sess, env, actor, critic):
             s = s2
             ep_reward += r
             TS += 1
+            
 
             if terminal:
 
@@ -172,10 +195,15 @@ def train(sess, env, actor, critic):
 
                 print ('| Reward: %.2i' % int(ep_reward), " | Episode", i, \
                     '| Qmax: %.4f' % (ep_ave_max_q / float(j)))
+                if ep_reward >= 200: 
+                    CI+=1
 
                 break
             
-    save_model()
+        if CI >= 30:
+            break
+        
+    save_model(sess, actor.target_net, critic.target_net)
     
 def main(_):
     with tf.Session() as sess:
@@ -196,11 +224,11 @@ def main(_):
         critic = cnet(sess, state_dim, action_dim, TAU, actor.get_num_trainable_vars(), MINIBATCH_SIZE)
 
         if GYM_MONITOR_EN:
-            #env = gym.wrappers.Monitor(env, MONITOR_DIR, force=True)
-            if not RENDER_ENV:
+            env = gym.wrappers.Monitor(env, MONITOR_DIR, force=True)
+            '''if not RENDER_ENV:
                 env.monitor.start(MONITOR_DIR, video_callable=False, force=True)
             else:
-                env.monitor.start(MONITOR_DIR, force=True)
+                env.monitor.start(MONITOR_DIR, force=True)'''
 
         train(sess, env, actor, critic)
 
