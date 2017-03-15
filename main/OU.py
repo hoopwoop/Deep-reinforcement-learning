@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-# --------------------------------------
-# Ornstein-Uhlenbeck Noise
-# Author: Flood Sung
-# Date: 2016.5.4
-# Reference: https://github.com/rllab/rllab/blob/master/rllab/exploration_strategies/ou_strategy.py
-# --------------------------------------
-
+'''
+author: Flood Sung
+'''
 import numpy as np
 import numpy.random as nr
 
@@ -31,7 +27,7 @@ class OUNoise:
 if __name__ == '__main__':
     ou = OUNoise(3)
     states = []
-    for i in range(100):
+    for i in range(2):
         states.append(ou.noise())
     import matplotlib.pyplot as plt
 
