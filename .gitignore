@@ -2,3 +2,6 @@
 /main/results/gym_ddpg
 /main/results/tf_ddpg_model
 /main/results/model
+/main/__pycache__
+/.spyproject
+/api_test
