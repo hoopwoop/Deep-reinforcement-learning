@@ -37,7 +37,6 @@ class cnet(object):
         self.optimize = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
         
         # calculate Q gradients
-        # tf.gradients operation has done the summation over each batch? looks not, because shape(Q_gradients)=(1,64,2)
         # do average over batch here
         self.Q_gradients = tf.divide(tf.gradients(self.out, self.actions), tf.constant(self.MINIBATCH_SIZE, tf.float32))
         

@@ -16,13 +16,13 @@ from replay_buffer import ReplayBuffer
 from OU import OUNoise
 
 # training parameter
-MAX_EPISODES = 10000
+MAX_EPISODES = 5000
 MAX_EP_STEPS = 1000
 GAMMA = 0.99
 TAU = 0.001
 
 RENDER_ENV = True
-GYM_MONITOR_EN = False
+GYM_MONITOR_EN = True
 ENV_NAME = 'Pendulum-v0'
 MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
@@ -157,6 +157,7 @@ def train(sess, env, actor, critic):
                 exploration_noise.reset()
                 
                 break
+            
         # criterion for lunarlander task    
         if CI >= 30:
             break
@@ -183,8 +184,7 @@ def main(_):
 
         train(sess, env, actor, critic)
 
-        if GYM_MONITOR_EN:
-            env.monitor.close()
+        env.render.close(True)
 
 if __name__ == '__main__':
     tf.app.run()
