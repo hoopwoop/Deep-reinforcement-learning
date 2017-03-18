@@ -16,14 +16,14 @@ from replay_buffer import ReplayBuffer
 from OU import OUNoise
 
 # training parameter
-MAX_EPISODES = 5000
+MAX_EPISODES = 50000
 MAX_EP_STEPS = 1000
 GAMMA = 0.99
 TAU = 0.001
 
 RENDER_ENV = True
 GYM_MONITOR_EN = True
-ENV_NAME = 'Pendulum-v0'
+ENV_NAME = 'LunarLanderContinuous-v2'
 MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
 MODEL_DIR = os.getcwd()+str('\\results\\model')
@@ -64,7 +64,7 @@ def train(sess, env, actor, critic):
     CI=0
     
     # OU noise
-    exploration_noise = OUNoise(actor.a_dim, mu=0, theta=0.15, sigma=0.1)
+    exploration_noise = OUNoise(actor.a_dim, mu=0, theta=0.15, sigma=0.05)
     
     # set summary ops
     summary_ops, summary_vars = build_summaries()
@@ -88,8 +88,8 @@ def train(sess, env, actor, critic):
             if RENDER_ENV: 
                 env.render()          
                 
-            # add OU noise with exponential decay
-            a = actor.predict(np.reshape(s, (1, actor.s_dim))) + exploration_noise.noise()*np.exp(np.divide(-i, 150))
+            # add OU noise with inverse sigmoid decay
+            a = actor.predict(np.reshape(s, (1, actor.s_dim))) + exploration_noise.noise()/(1+np.exp(0.1*i-30))
     
             # ensure the output is limited        
             a = np.minimum(np.maximum(a, -actor.action_bound), actor.action_bound)    
@@ -158,9 +158,6 @@ def train(sess, env, actor, critic):
                 
                 break
             
-        # criterion for lunarlander task    
-        if CI >= 30:
-            break
         
     #save model    
     save_model(sess, actor.target_net, critic.target_net)
