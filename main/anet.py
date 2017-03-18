@@ -53,9 +53,11 @@ class anet(object):
        B3 = tf.Variable(tf.random_uniform([self.a_dim],-3e-3,3e-3))
        XX = tf.reshape(states, [-1, self.s_dim]) 
        Y1l = tf.matmul(XX, W1)
-       Y1 = tf.nn.relu(Y1l+B1)
+       Y1bn, update_ema1 = self.batchnorm(Y1l, tst, i, B1) 
+       Y1 = tf.nn.relu(Y1bn)
        Y2l = tf.matmul(Y1, W2)
-       Y2 = tf.nn.relu(Y2l+B2)
+       Y2bn, update_ema2 = self.batchnorm(Y2l, tst, i, B2)
+       Y2 = tf.nn.relu(Y2bn)
        Ylogits = tf.matmul(Y2, W3) + B3
        out = tf.tanh(Ylogits)
        scaled_out = tf.multiply(out, self.action_bound)
@@ -75,8 +77,20 @@ class anet(object):
        out = tf.tanh(Ylogits)
        scaled_out = tf.multiply(out, self.action_bound)
        return states, out, scaled_out, [W1, B1, W2, B2, W3, B3]
- 
- 
+   
+    
+    # batchnorm
+   def batchnorm(self, Ylogits, is_test, iteration, offset, i):
+       bnepsilon = 1e-5
+       exp_move_avg = tf.train.ExponentialMovingAverage(0.999, i)
+       mean, variance = tf.nn.moments(Ylogits, [0])
+       update_move_avg = exp_move_avg.apply([mean, variance])
+       m = tf.cond(is_test, lambda: exp_move_avg.average(mean), lambda: mean)
+       v = tf.cond(is_test, lambda: exp_move_avg.average(variance), lambda: variance)
+       Ybn = tf.nn.batch_normalization(Ylogits, m, v, offset, None, bnepsilon)
+       return Ybn, update_move_avg
+       
+       
    def train(self, states, Q_gradients, i):
      learning_rate=0.0001
      self.sess.run(self.optimize, feed_dict={
