@@ -8,7 +8,7 @@
 # Configuration
 Python3.5.3, tensorflow_cpu, openai gym, openai gym[box2d], win7-64bit
 # Results
-Pendulum task
+Pendulum task: Learn to swing it up and stay upright
 
 ![image](https://raw.githubusercontent.com/hoopwoop/Deep-reinforcement-learning/ddpg1/screenshots/episode_2000.gif)
 ![image](https://raw.githubusercontent.com/hoopwoop/Deep-reinforcement-learning/ddpg1/screenshots/result_rewards.JPG)
