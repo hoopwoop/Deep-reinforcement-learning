@@ -1,4 +1,5 @@
 # Deep-reinforcement-learning
+Play around with DRL!
 # References
 1. Deep learning: http://neuralnetworksanddeeplearning.com/
 2. Reinforcement learning: https://webdocs.cs.ualberta.ca/~sutton/book/the-book.html
