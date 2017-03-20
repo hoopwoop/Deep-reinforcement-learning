@@ -9,21 +9,20 @@ import gym
 import os
 import csv
 import numpy as np
-from gym import wrappers
 from anet import anet
 from cnet import cnet
 from replay_buffer import ReplayBuffer
 from OU import OUNoise
 
 # training parameter
-MAX_EPISODES = 50000
+MAX_EPISODES = 10000
 MAX_EP_STEPS = 1000
 GAMMA = 0.99
 TAU = 0.001
 
 RENDER_ENV = True
 GYM_MONITOR_EN = True
-ENV_NAME = 'LunarLanderContinuous-v2'
+ENV_NAME = 'Pendulum-v0'
 MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
 MODEL_DIR = os.getcwd()+str('\\results\\model')
@@ -33,8 +32,8 @@ MINIBATCH_SIZE = 64
 
 # save model
 def save_model(sess, actor_net, critic_net):
-    anetf=open(MODEL_DIR+'\\actornet_weight', 'w')
-    cnetf=open(MODEL_DIR+'\\criticnet_weight', 'w')
+    anetf=open(MODEL_DIR+'\\actornet_weight_bias_ema', 'w')
+    cnetf=open(MODEL_DIR+'\\criticnet_weight_bias_ema', 'w')
     writera = csv.writer(anetf)
     writera.writerows(sess.run(actor_net))
     writerc = csv.writer(cnetf)
@@ -64,7 +63,7 @@ def train(sess, env, actor, critic):
     CI=0
     
     # OU noise
-    exploration_noise = OUNoise(actor.a_dim, mu=0, theta=0.15, sigma=0.05)
+    exploration_noise = OUNoise(actor.a_dim, mu=0, theta=0.15, sigma=0.1)
     
     # set summary ops
     summary_ops, summary_vars = build_summaries()
@@ -89,7 +88,7 @@ def train(sess, env, actor, critic):
                 env.render()          
                 
             # add OU noise with inverse sigmoid decay
-            a = actor.predict(np.reshape(s, (1, actor.s_dim))) + exploration_noise.noise()/(1+np.exp(0.1*i-30))
+            a = actor.predict(np.reshape(s, (1, actor.s_dim)), TS) + exploration_noise.noise()/(1+np.exp(0.1*i-30))
     
             # ensure the output is limited        
             a = np.minimum(np.maximum(a, -actor.action_bound), actor.action_bound)    
@@ -107,7 +106,7 @@ def train(sess, env, actor, critic):
                     replay_buffer.sample_batch(MINIBATCH_SIZE)
 
                 # target Q' with target action
-                target_q = critic.predict_target(s2_batch, actor.predict_target(s2_batch))
+                target_q = critic.predict_target(s2_batch, actor.predict_target(s2_batch, TS), TS)
 
                 # target value for critic net loss minimizing
                 y_i = []
@@ -123,8 +122,8 @@ def train(sess, env, actor, critic):
                 ep_ave_max_q += np.amax(predicted_q_value)
 
                 # train actor
-                a_outs = actor.predict(s_batch)                
-                grads = critic.update_Q_gradients(s_batch, a_outs)
+                a_outs = actor.predict(s_batch, TS)                
+                grads = critic.update_Q_gradients(s_batch, a_outs, TS)
                 actor.train(s_batch, grads[0], TS) 
 
                 # update target networks
