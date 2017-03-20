@@ -88,7 +88,7 @@ def train(sess, env, actor, critic):
                 env.render()          
                 
             # add OU noise with inverse sigmoid decay
-            a = actor.predict(np.reshape(s, (1, actor.s_dim)), TS) + exploration_noise.noise()/(1+np.exp(0.1*i-30))
+            a = actor.predict(np.reshape(s, (1, actor.s_dim)), TS) + exploration_noise.noise()*np.exp(np.divide(-i, 150))
     
             # ensure the output is limited        
             a = np.minimum(np.maximum(a, -actor.action_bound), actor.action_bound)    
