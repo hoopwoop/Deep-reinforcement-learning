@@ -9,7 +9,6 @@ import gym
 import os
 import csv
 import numpy as np
-from gym import wrappers
 from anet import anet
 from cnet import cnet
 from replay_buffer import ReplayBuffer
@@ -33,8 +32,8 @@ MINIBATCH_SIZE = 64
 
 # save model
 def save_model(sess, actor_net, critic_net):
-    anetf=open(MODEL_DIR+'\\actornet_weight', 'w')
-    cnetf=open(MODEL_DIR+'\\criticnet_weight', 'w')
+    anetf=open(MODEL_DIR+'\\actornet_weight_bias', 'w')
+    cnetf=open(MODEL_DIR+'\\criticnet_weight_bias', 'w')
     writera = csv.writer(anetf)
     writera.writerows(sess.run(actor_net))
     writerc = csv.writer(cnetf)

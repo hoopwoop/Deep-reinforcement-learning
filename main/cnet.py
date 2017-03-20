@@ -96,17 +96,20 @@ class cnet(object):
             self.actions: actions
         })
 
+    
     def predict_target(self, states, actions):
         return self.sess.run(self.target_out, feed_dict={
             self.target_states: states,
             self.target_actions: actions
         })
 
+    
     def update_Q_gradients(self, states, actions): 
         return self.sess.run(self.Q_gradients, feed_dict={
             self.states: states,
             self.actions: actions
         })
 
+    
     def update_target_network(self):
         self.sess.run(self.update_target)
