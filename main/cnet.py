@@ -33,7 +33,7 @@ class cnet(object):
         # update target weight, and no need to update ema
         self.update_target = \
         [self.target_net[i].assign(tf.multiply(self.tau, self.net[i]) + tf.multiply((1-self.tau), self.target_net[i])) 
-            for i in range(len(self.target_net)-2)]
+            for i in range(0,13)]
     
         # initialize target value for critic net loss minimizing
         self.y = tf.placeholder(tf.float32, [None, 1])
@@ -60,41 +60,53 @@ class cnet(object):
         B2 = tf.Variable(tf.random_uniform([layer2_size],-1/np.sqrt(layer1_size + self.a_dim),1/np.sqrt(layer1_size + self.a_dim)))
         W3 = tf.Variable(tf.random_uniform([layer2_size,1],-3e-3,3e-3))
         B3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
+        O0 = tf.Variable(tf.random_uniform([self.s_dim],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)))
+        S0 = tf.Variable(tf.random_uniform([self.s_dim],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)))
+        O0a = tf.Variable(tf.random_uniform([self.a_dim],-1/np.sqrt(self.a_dim),1/np.sqrt(self.a_dim)))
+        S0a = tf.Variable(tf.random_uniform([self.a_dim],-1/np.sqrt(self.a_dim),1/np.sqrt(self.a_dim)))
+        O3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
+        S3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
         XX = tf.reshape(states, [-1, self.s_dim]) 
+        XXbn, update_ema0, ema0 = self.batchnorm(XX, self.tst, self.iter, O0, S0)
         XXa = tf.reshape(actions, [-1, self.a_dim])
-        Y1l = tf.matmul(XX, W1)
-        Y1bn, update_ema1, ema1 = self.batchnorm(Y1l, self.tst, self.iter, B1)
-        Y1 = tf.nn.relu(Y1l)
-        Y2l = tf.matmul(Y1, W2s) + tf.matmul(XXa, W2a)
-        Y2bn, update_ema2, ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2)
-        Y2 = tf.nn.relu(Y2l)
-        Ylogits = tf.identity(tf.matmul(Y2, W3) + B3)
-        out = Ylogits
-        update_ema = tf.group (update_ema1, update_ema2)
-        return states, actions, out, update_ema, [W1, B1, W2s, W2a, B2, W3, B3, ema1, ema2]
+        XXabn, update_ema0a, ema0a = self.batchnorm(XXa, self.tst, self.iter, O0a, S0a)
+        Y1l = tf.matmul(XXbn, W1)
+        Y1bn, update_ema1, ema1 = self.batchnorm(Y1l, self.tst, self.iter, B1, None)
+        Y1 = tf.nn.relu(Y1bn)
+        Y2l = tf.matmul(Y1, W2s) + tf.matmul(XXabn, W2a)
+        Y2bn, update_ema2, ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2, None)
+        Y2 = tf.nn.relu(Y2bn)
+        Y3l = tf.matmul(Y2, W3)
+        Y3bn, update_ema3, ema3 = self.batchnorm(Y3l, self.tst, self.iter, O3, S3)
+        out = tf.identity(Y3bn + B3)
+        update_ema = tf.group (update_ema0, update_ema0a, update_ema1, update_ema2, update_ema3)
+        return states, actions, out, update_ema, [W1, B1, W2s, W2a, B2, W3, B3, O0, S0, O0a, S0a, O3, S3, ema0, ema0a, ema1, ema2, ema3]
     
     
     # target net
     def create_c_target_net(self):
         states = tf.placeholder(tf.float32, [None, self.s_dim])
         actions = tf.placeholder(tf.float32, [None, self.a_dim])      
-        W1, B1, W2s, W2a, B2, W3, B3 = self.target_net[0:7]
+        W1, B1, W2s, W2a, B2, W3, B3, O0, S0, O0a, S0a, O3, S3 = self.target_net[0:13]
         XX = tf.reshape(states, [-1, self.s_dim]) 
+        XXbn, update_ema0, ema0 = self.batchnorm(XX, self.tst, self.iter, O0, S0)
         XXa = tf.reshape(actions, [-1, self.a_dim])
-        Y1l = tf.matmul(XX, W1)
-        Y1bn, update_ema1, ema1 = self.batchnorm(Y1l, self.tst, self.iter, B1)
-        Y1 = tf.nn.relu(Y1l)
-        Y2l = tf.matmul(Y1, W2s) + tf.matmul(XXa, W2a)
-        Y2bn, update_ema2, ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2)
-        Y2 = tf.nn.relu(Y2l)
-        Ylogits = tf.identity(tf.matmul(Y2, W3) + B3)
-        out = Ylogits
-        update_ema = tf.group (update_ema1, update_ema2)
-        return states, actions, out, update_ema, [W1, B1, W2s, W2a, B2, W3, B3, ema1, ema2]
+        XXabn, update_ema0a, ema0a = self.batchnorm(XXa, self.tst, self.iter, O0a, S0a)
+        Y1l = tf.matmul(XXbn, W1)
+        Y1bn, update_ema1, ema1 = self.batchnorm(Y1l, self.tst, self.iter, B1, None)
+        Y1 = tf.nn.relu(Y1bn)
+        Y2l = tf.matmul(Y1, W2s) + tf.matmul(XXabn, W2a)
+        Y2bn, update_ema2, ema2 = self.batchnorm(Y2l, self.tst, self.iter, B2, None)
+        Y2 = tf.nn.relu(Y2bn)
+        Y3l = tf.matmul(Y2, W3)
+        Y3bn, update_ema3, ema3 = self.batchnorm(Y3l, self.tst, self.iter, O3, S3)
+        out = tf.identity(Y3bn + B3)
+        update_ema = tf.group (update_ema0, update_ema0a, update_ema1, update_ema2, update_ema3)
+        return states, actions, out, update_ema, [W1, B1, W2s, W2a, B2, W3, B3, O0, S0, O0a, S0a, O3, S3, ema0, ema0a, ema1, ema2, ema3]
 
    
     # batchnorm
-    def batchnorm(self, Ylogits, is_test, iteration, offset):
+    def batchnorm(self, Ylogits, is_test, iteration, offset, scale):
         bnepsilon = 1e-5
         exp_move_avg = tf.train.ExponentialMovingAverage(0.999, iteration)
         mean, variance = tf.nn.moments(Ylogits, [0])
@@ -102,7 +114,7 @@ class cnet(object):
         update_move_avg = exp_move_avg.apply([mean, variance])
         m = tf.cond(is_test, lambda: exp_move_avg.average(mean), lambda: mean)
         v = tf.cond(is_test, lambda: exp_move_avg.average(variance), lambda: variance)
-        Ybn = tf.nn.batch_normalization(Ylogits, m, v, offset, None, bnepsilon)
+        Ybn = tf.nn.batch_normalization(Ylogits, m, v, offset, scale, bnepsilon)
         return Ybn, update_move_avg, ema
    
     
@@ -115,7 +127,8 @@ class cnet(object):
         })
     
       # update moving average
-      self.sess.run(self.update_ema, feed_dict={self.states: states, self.tst: False, self.iter: i})
+      self.sess.run(self.update_ema, feed_dict={self.states: states, self.actions: actions, self.tst: False, self.iter: i})
+      self.sess.run(self.target_update_ema, feed_dict={self.target_states: states, self.target_actions: actions, self.tst: False, self.iter: i})
 
 
     def predict(self, states, actions, i):

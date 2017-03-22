@@ -27,7 +27,7 @@ MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
 MODEL_DIR = os.getcwd()+str('\\results\\model')
 RANDOM_SEED = 1234
-BUFFER_SIZE = 10000
+BUFFER_SIZE = 1000000
 MINIBATCH_SIZE = 64
 
 # save model
