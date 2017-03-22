@@ -1,5 +1,5 @@
 # DDPG with batchnorm
-can't get good result with batchnorm technique
+not yet good result
 
 # Results
 ● Pendulum task: Learn to swing the pendulum up and stay upright<br/>
