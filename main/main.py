@@ -15,7 +15,7 @@ from replay_buffer import ReplayBuffer
 from OU import OUNoise
 
 # training parameter
-MAX_EPISODES = 50000
+MAX_EPISODES = 10000
 MAX_EP_STEPS = 1000
 GAMMA = 0.99
 TAU = 0.001
@@ -27,7 +27,7 @@ MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
 SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
 MODEL_DIR = os.getcwd()+str('\\results\\model')
 RANDOM_SEED = 1234
-BUFFER_SIZE = 10000
+BUFFER_SIZE = 1000000
 MINIBATCH_SIZE = 64
 
 # save model
