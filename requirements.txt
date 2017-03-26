@@ -1,0 +1,7 @@
+jupyter
+scipy
+spyder
+h5py
+matplotlib
+ffmpeg
+swig
