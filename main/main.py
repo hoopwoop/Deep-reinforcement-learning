@@ -23,17 +23,17 @@ TAU = 0.001
 RENDER_ENV = True
 GYM_MONITOR_EN = True
 ENV_NAME = 'LunarLanderContinuous-v2'
-MONITOR_DIR = os.getcwd()+str('\\results\\gym_ddpg')
-SUMMARY_DIR = os.getcwd()+str('\\results\\tf_ddpg')
-MODEL_DIR = os.getcwd()+str('\\results\\model')
+MONITOR_DIR = os.path.join(os.getcwd(), 'results', 'gym_ddpg')
+SUMMARY_DIR = os.path.join(os.getcwd(), 'results', 'tf_ddpg')
+MODEL_DIR = os.path.join(os.getcwd(), 'results', 'model')
 RANDOM_SEED = 1234
 BUFFER_SIZE = 1000000
 MINIBATCH_SIZE = 64
 
 # save model
 def save_model(sess, actor_net, critic_net):
-    anetf=open(MODEL_DIR+'\\actornet_weight_bias', 'w')
-    cnetf=open(MODEL_DIR+'\\criticnet_weight_bias', 'w')
+    anetf=open(os.path.join(MODEL_DIR, 'actornet_weight_bias'), 'w')
+    cnetf=open(os.path.join(MODEL_DIR, 'criticnet_weight_bias'), 'w')
     writera = csv.writer(anetf)
     writera.writerows(sess.run(actor_net))
     writerc = csv.writer(cnetf)
