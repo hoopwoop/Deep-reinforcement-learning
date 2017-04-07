@@ -39,21 +39,21 @@ def ini_actor(sess):
     saver = tf.train.Saver({'aW1':aW1, 'aB1':aB1, 'aW2':aW2, 'aB2':aB2, 'aW3':aW3, 'aB3':aB3})
     saver.restore(sess, os.path.join(SUMMARY_DIR, 'model.ckpt')) 
     model = aW1, aB1, aW2, aB2, aW3, aB3
-    load_model = sess.run(model)
     
-    return load_model
+    return model
 
 def actor(sess, states, model):   
     aW1, aB1, aW2, aB2, aW3, aB3 = model
-    XX = tf.reshape(np.float32(states), [-1, state_dim]) 
-    Y1l = tf.matmul(XX, np.float32(aW1))
-    Y1 = tf.nn.relu(Y1l+np.float32(aB1))
-    Y2l = tf.matmul(Y1, np.float32(aW2))
-    Y2 = tf.nn.relu(Y2l+np.float32(aB2))
-    Ylogits = tf.matmul(Y2, np.float32(aW3)) + np.float32(aB3)
+    inputs = tf.placeholder(tf.float32, [None, state_dim])
+    XX = tf.reshape(inputs, [-1, state_dim]) 
+    Y1l = tf.matmul(XX,aW1)
+    Y1 = tf.nn.relu(Y1l+aB1)
+    Y2l = tf.matmul(Y1, aW2)
+    Y2 = tf.nn.relu(Y2l+aB2)
+    Ylogits = tf.matmul(Y2, aW3) + aB3
     out = tf.tanh(Ylogits)
     scaled_out = tf.multiply(out, action_bound)
-    return sess.run(scaled_out) 
+    return sess.run(scaled_out, feed_dict={inputs: states}) 
 
 
 with tf.Session() as sess:
@@ -67,6 +67,7 @@ with tf.Session() as sess:
         for j in range(MAX_EP_STEPS): 
             env.render()
             a = actor(sess, np.reshape(s, (1, state_dim)), anet)
+            a = np.minimum(np.maximum(a, -action_bound), action_bound)
             s2, r, terminal, info = env.step(a[0])
         
             s = s2

@@ -21,7 +21,7 @@ GAMMA = 0.99
 TAU = 0.001
 
 RENDER_ENV = False
-GYM_MONITOR_EN = False
+GYM_MONITOR_EN = True
 ENV_NAME = 'LunarLanderContinuous-v2'
 MONITOR_DIR = os.path.join(os.getcwd(), 'results', 'gym_ddpg')
 SUMMARY_DIR = os.path.join(os.getcwd(), 'results', 'tf_ddpg')
