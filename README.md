@@ -27,4 +27,5 @@ Landing<br/>
 Reward<br/>
 ![image](https://raw.githubusercontent.com/hoopwoop/Deep-reinforcement-learning/ddpg1/screenshots/20170322llcv2_reward.jpg)<br/>
 
-OpenAI Gym page: https://gym.openai.com/evaluations/eval_nsB2hgiRaGGhxCSxw8A
+OpenAI Gym page: https://gym.openai.com/evaluations/eval_nsB2hgiRaGGhxCSxw8A<br/>
+P.S. If you want to skip training and see the learned result, run policy_executer.py with tf_ddpg folder under result folder
