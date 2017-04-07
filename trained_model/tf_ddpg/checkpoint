@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\Z97-MPOWER\\Desktop\\projects\\main\\results\\tf_ddpg\\model.ckpt"
+all_model_checkpoint_paths: "C:\\Users\\Z97-MPOWER\\Desktop\\projects\\main\\results\\tf_ddpg\\model.ckpt"
