@@ -15,12 +15,12 @@ from replay_buffer import ReplayBuffer
 from OU import OUNoise
 
 # training parameter
-MAX_EPISODES = 10000
+MAX_EPISODES = 1
 MAX_EP_STEPS = 1000
 GAMMA = 0.99
 TAU = 0.001
 
-RENDER_ENV = True
+RENDER_ENV = False
 GYM_MONITOR_EN = True
 ENV_NAME = 'LunarLanderContinuous-v2'
 MONITOR_DIR = os.path.join(os.getcwd(), 'results', 'gym_ddpg')
@@ -42,6 +42,14 @@ def save_model(sess, actor_net, critic_net):
     cnetf.close()
     print('''Model saved''')
     
+# save model_tensorflow
+def save_model_tf(sess, actor_net, critic_net):   
+    anet.update_target_network
+    cnet.update_target_network
+    saver = tf.train.Saver()
+    saver.save(sess, os.path.join(SUMMARY_DIR, 'model.ckpt'))
+    print('''Model saved with tf''')
+
 # summary    
 def build_summaries(): 
     episode_reward = tf.Variable(0.)
@@ -159,7 +167,7 @@ def train(sess, env, actor, critic):
             
         
     #save model    
-    save_model(sess, actor.target_net, critic.target_net)
+    save_model_tf(sess, actor.target_net, critic.target_net)
     
 def main(_):
     with tf.Session() as sess:        

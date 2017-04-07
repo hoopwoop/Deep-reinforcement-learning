@@ -45,36 +45,36 @@ class anet(object):
        layer1_size = 400
        layer2_size = 300
        states = tf.placeholder(tf.float32, [None, self.s_dim])
-       W1 = tf.Variable(tf.random_uniform([self.s_dim, layer1_size],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)))
-       B1 = tf.Variable(tf.random_uniform([layer1_size],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)))
-       W2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size],-1/np.sqrt(layer1_size),1/np.sqrt(layer1_size)))
-       B2 = tf.Variable(tf.random_uniform([layer2_size],-1/np.sqrt(layer1_size),1/np.sqrt(layer1_size)))
-       W3 = tf.Variable(tf.random_uniform([layer2_size, self.a_dim],-3e-3,3e-3))
-       B3 = tf.Variable(tf.random_uniform([self.a_dim],-3e-3,3e-3))
+       aW1 = tf.Variable(tf.random_uniform([self.s_dim, layer1_size],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)), name="aW1")
+       aB1 = tf.Variable(tf.random_uniform([layer1_size],-1/np.sqrt(self.s_dim),1/np.sqrt(self.s_dim)), name="aB1")
+       aW2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size],-1/np.sqrt(layer1_size),1/np.sqrt(layer1_size)), name="aW2")
+       aB2 = tf.Variable(tf.random_uniform([layer2_size],-1/np.sqrt(layer1_size),1/np.sqrt(layer1_size)), name="aB2")
+       aW3 = tf.Variable(tf.random_uniform([layer2_size, self.a_dim],-3e-3,3e-3), name="aW3")
+       aB3 = tf.Variable(tf.random_uniform([self.a_dim],-3e-3,3e-3), name="aB3")
        XX = tf.reshape(states, [-1, self.s_dim]) 
-       Y1l = tf.matmul(XX, W1) 
-       Y1 = tf.nn.relu(Y1l+B1)
-       Y2l = tf.matmul(Y1, W2)
-       Y2 = tf.nn.relu(Y2l+B2)
-       Ylogits = tf.matmul(Y2, W3) + B3
+       Y1l = tf.matmul(XX, aW1) 
+       Y1 = tf.nn.relu(Y1l+aB1)
+       Y2l = tf.matmul(Y1, aW2)
+       Y2 = tf.nn.relu(Y2l+aB2)
+       Ylogits = tf.matmul(Y2, aW3) + aB3
        out = tf.tanh(Ylogits)
        scaled_out = tf.multiply(out, self.action_bound)
-       return states, out, scaled_out, [W1, B1, W2, B2, W3, B3]
+       return states, out, scaled_out, [aW1, aB1, aW2, aB2, aW3, aB3]
    
     
     # target net
    def create_a_target_net(self):
        states = tf.placeholder(tf.float32, [None, self.s_dim])
-       W1, B1, W2, B2, W3, B3 = self.target_net
+       aW1, aB1, aW2, aB2, aW3, aB3 = self.target_net
        XX = tf.reshape(states, [-1, self.s_dim]) 
-       Y1l = tf.matmul(XX, W1)
-       Y1 = tf.nn.relu(Y1l+B1)
-       Y2l = tf.matmul(Y1, W2)
-       Y2 = tf.nn.relu(Y2l+B2)
-       Ylogits = tf.matmul(Y2, W3) + B3
+       Y1l = tf.matmul(XX, aW1)
+       Y1 = tf.nn.relu(Y1l+aB1)
+       Y2l = tf.matmul(Y1, aW2)
+       Y2 = tf.nn.relu(Y2l+aB2)
+       Ylogits = tf.matmul(Y2, aW3) + aB3
        out = tf.tanh(Ylogits)
        scaled_out = tf.multiply(out, self.action_bound)
-       return states, out, scaled_out, [W1, B1, W2, B2, W3, B3]
+       return states, out, scaled_out, [aW1, aB1, aW2, aB2, aW3, aB3]
        
        
    def train(self, states, Q_gradients, i):
