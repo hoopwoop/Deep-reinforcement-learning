@@ -25,48 +25,48 @@ action_dim = env.action_space.shape[0]
 action_bound = env.action_space.high
 
 
-def actor(states, sess, ini=False):
+def ini_actor(sess):
     layer1_size = 400
     layer2_size = 300       
-    states = np.float32(states)
     aW1 = tf.Variable(tf.random_uniform([state_dim, layer1_size],-1/np.sqrt(state_dim),1/np.sqrt(state_dim)), name="aW1")
     aB1 = tf.Variable(tf.random_uniform([layer1_size],-1/np.sqrt(state_dim),1/np.sqrt(state_dim)), name="aB1")
     aW2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size],-1/np.sqrt(layer1_size),1/np.sqrt(layer1_size)), name="aW2")
     aB2 = tf.Variable(tf.random_uniform([layer2_size],-1/np.sqrt(layer1_size),1/np.sqrt(layer1_size)), name="aB2")
     aW3 = tf.Variable(tf.random_uniform([layer2_size, action_dim],-3e-3,3e-3), name="aW3")
     aB3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3), name="aB3")
-    
-    if ini: 
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver({'aW1':aW1, 'aB1':aB1, 'aW2':aW2, 'aB2':aB2, 'aW3':aW3, 'aB3':aB3})
-        saver.restore(sess, os.path.join(SUMMARY_DIR, 'model.ckpt'))    
 
-    XX = tf.reshape(states, [-1, state_dim]) 
-    Y1l = tf.matmul(XX, aW1) 
-    Y1 = tf.nn.relu(Y1l+aB1)
-    Y2l = tf.matmul(Y1, aW2)
-    Y2 = tf.nn.relu(Y2l+aB2)
-    Ylogits = tf.matmul(Y2, aW3) + aB3
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver({'aW1':aW1, 'aB1':aB1, 'aW2':aW2, 'aB2':aB2, 'aW3':aW3, 'aB3':aB3})
+    saver.restore(sess, os.path.join(SUMMARY_DIR, 'model.ckpt')) 
+    model = aW1, aB1, aW2, aB2, aW3, aB3
+    load_model = sess.run(model)
+    
+    return load_model
+
+def actor(sess, states, model):   
+    aW1, aB1, aW2, aB2, aW3, aB3 = model
+    XX = tf.reshape(np.float32(states), [-1, state_dim]) 
+    Y1l = tf.matmul(XX, np.float32(aW1))
+    Y1 = tf.nn.relu(Y1l+np.float32(aB1))
+    Y2l = tf.matmul(Y1, np.float32(aW2))
+    Y2 = tf.nn.relu(Y2l+np.float32(aB2))
+    Ylogits = tf.matmul(Y2, np.float32(aW3)) + np.float32(aB3)
     out = tf.tanh(Ylogits)
     scaled_out = tf.multiply(out, action_bound)
-    return scaled_out 
-
-def predict(sess, states):
-        return sess.run(actor(states, sess, True))
+    return sess.run(scaled_out) 
 
 
 with tf.Session() as sess:
     
-    _=actor([], sess, True)
+    anet=ini_actor(sess)
     
     for i in range(MAX_EPISODES):
         s = env.reset()
         ep_reward = 0
         
         for j in range(MAX_EP_STEPS): 
-            #env.render()
-            a = predict(sess, np.reshape(s, (1, state_dim)))
-            print(a)
+            env.render()
+            a = actor(sess, np.reshape(s, (1, state_dim)), anet)
             s2, r, terminal, info = env.step(a[0])
         
             s = s2

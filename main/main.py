@@ -15,13 +15,13 @@ from replay_buffer import ReplayBuffer
 from OU import OUNoise
 
 # training parameter
-MAX_EPISODES = 1
+MAX_EPISODES = 2000
 MAX_EP_STEPS = 1000
 GAMMA = 0.99
 TAU = 0.001
 
 RENDER_ENV = False
-GYM_MONITOR_EN = True
+GYM_MONITOR_EN = False
 ENV_NAME = 'LunarLanderContinuous-v2'
 MONITOR_DIR = os.path.join(os.getcwd(), 'results', 'gym_ddpg')
 SUMMARY_DIR = os.path.join(os.getcwd(), 'results', 'tf_ddpg')
